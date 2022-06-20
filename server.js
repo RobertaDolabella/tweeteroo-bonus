@@ -9,6 +9,8 @@ server.use(cors())
 
 const data = []
 
+
+
 let user = {
     username: "username", 
     avatar: "avatarPicture"
@@ -22,13 +24,43 @@ server.post('/sign-up', (request, response)=>{
 
 })
 
+server.get('/tweets?page', (request, response) => {
+    const params = new URLSearchParams('/tweets?page')
+    const page = params.get("page")
+   
+    if(data.length>10 && page!==1){ 
+    const totalpages = Math.ceil(data.length/10)
+    if(page>totalpages){
+        response.status(400)
+    }else{
+        let pages = []
+        for(let itens=0; itens<data.length; itens= itens+10){
+        let add = data.splice(itens, itens+10)
+        pages.push({add})    
+        }
+        let pagesToReturn =[]
+        for(let until=0; until<=page; until++){
+        pagesToReturn.push(pages[until])
+        }
+        response.send(pagesToReturn)
+        }
+    }
+})
+ 
 server.get('/tweets', (request, response)=>{
     if(data.length>10){
-        data.shift()
-    response.send(data)
+        let datareverse = []
+        for(let datas=data.length-1;datas>=data.length-10; datas--){
+            datareverse.push(data[datas])
+        }
+    response.status(201).send(datareverse)
     }
     else{
-        response.status(201).send(data)
+        let datareverse = []
+        for(let datas=data.length-1;datas>=0; datas--){
+            datareverse.push(data[datas])
+        }
+        response.status(201).send(datareverse)
     }
 })
 
@@ -50,11 +82,14 @@ server.post('/tweets', (request, response)=>{
   
 })
 
-server.get('/tweets/:USERNAME', (req, res) => {
-    const username = req.params.USERNAME;
+server.get('/tweets/:USERNAME', (request, response) => {
+    const username = request.params.USERNAME;
 
     const dataUser = data.filter(user=>user.username===username)
 
-    res.send(dataUser)
+    response.send(dataUser)
   });
+
+
+
 server.listen(5000)
